@@ -10,6 +10,7 @@ Automated PDF extraction and summarization tool using MarkItDown + OpenRouter, w
 - **Email Reports** — SMTP delivery with attachments and CC/BCC
 - **Scheduling** — Daily and weekly cron jobs via APScheduler
 - **CLI** — Command-line interface for all operations
+- **Web UI** — Browser-based interface for non-technical users
 
 ## Quick Start
 
@@ -41,6 +42,10 @@ python main.py tools
 
 # Start the scheduler (daily 8AM + weekly Monday 9AM)
 python main.py schedule
+
+# Start the Web UI
+python -m web.app
+# Open http://localhost:5000 in your browser
 ```
 
 ## Project Structure
@@ -61,6 +66,9 @@ python main.py schedule
 │   └── send_tool.py         # Tool: email delivery
 ├── mailer/smtp_client.py    # SMTP email automation
 ├── scheduler/cron.py        # Daily/weekly cron scheduling
+├── web/
+│   ├── app.py               # Flask web application
+│   └── templates/           # HTML templates
 ├── input/                   # Place PDFs here
 ├── output/                  # Generated reports
 ├── .env.example             # Configuration template
