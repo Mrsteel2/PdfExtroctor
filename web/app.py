@@ -19,9 +19,10 @@ from mailer.smtp_client import SMTPClient
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-UPLOAD_FOLDER = Path("input")
+BASE_DIR = Path(__file__).resolve().parent.parent
+UPLOAD_FOLDER = BASE_DIR / "input"
 UPLOAD_FOLDER.mkdir(exist_ok=True)
-OUTPUT_FOLDER = Path("output")
+OUTPUT_FOLDER = BASE_DIR / "output"
 OUTPUT_FOLDER.mkdir(exist_ok=True)
 
 extractor = PDFExtractor()
