@@ -42,7 +42,27 @@
 
 <div class="container">
 
-<!-- flash messages hidden -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+  {% for category, msg in messages %}
+  <div class="toast show border-0 shadow mb-2" role="alert" style="min-width:300px;">
+    <div class="d-flex align-items-center {% if category == 'success' %}bg-success{% else %}bg-danger{% endif %} text-white rounded-top px-3 py-2">
+      <i class="bi {% if category == 'success' %}bi-check-circle-fill{% else %}bi-exclamation-circle-fill{% endif %} me-2"></i>
+      <strong class="me-auto">{% if category == 'success' %}Success{% else %}Error{% endif %}</strong>
+      <button type="button" class="btn-close btn-close-white" onclick="this.closest('.toast').remove()"></button>
+    </div>
+    <div class="toast-body">{{ msg }}</div>
+  </div>
+  {% endfor %}
+</div>
+<script>
+  setTimeout(function() {
+    document.querySelectorAll('.toast').forEach(function(t) { t.remove(); });
+  }, 5000);
+</script>
+{% endif %}
+{% endwith %}
 
 <div class="row">
   <!-- Left: File list -->
