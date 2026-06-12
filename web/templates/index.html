@@ -27,15 +27,27 @@
     .empty-state { text-align: center; padding: 40px 20px; color: #adb5bd; }
     .empty-state i { font-size: 48px; margin-bottom: 12px; }
     pre { margin-bottom: 0; }
+    body.dark { background: #1a1a2e; color: #e0e0e0; }
+    body.dark .card { background: #16213e; color: #e0e0e0; }
+    body.dark .card-header { border-color: #2a2a4a; color: #e0e0e0; }
+    body.dark .form-control, body.dark .form-select { background: #0f0f23; color: #e0e0e0; border-color: #2a2a4a; }
+    body.dark .text-muted { color: #8899aa !important; }
+    body.dark .file-item { background: #0f3460; }
+    body.dark .file-item:hover { background: #1a4a7a; }
+    body.dark .result-box { background: #0f0f23; color: #e0e0e0; }
+    body.dark .form-check-label { color: #e0e0e0; }
+    body.dark .navbar { background: #0f0f23 !important; }
   </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark mb-4">
-  <div class="container">
+  <div class="container d-flex justify-content-between align-items-center">
     <span class="navbar-brand mb-0 h1"><i class="bi bi-file-earmark-pdf me-2"></i>PDF Extractor</span>
     <div>
+      <a href="{{ url_for('history') }}" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-clock-history"></i> History</a>
       <a href="{{ url_for('settings') }}" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-gear"></i> Settings</a>
+      <button class="btn btn-outline-light btn-sm" onclick="toggleDark()"><i class="bi bi-moon" id="darkIcon"></i></button>
     </div>
   </div>
 </nav>
@@ -74,12 +86,20 @@
       </div>
       <div class="card-body">
         {% if pdfs %}
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+            <label class="form-check-label small fw-semibold" for="selectAll">Select All</label>
+          </div>
           {% for pdf in pdfs %}
           <div class="file-item">
-            <span><i class="bi bi-file-earmark-pdf text-danger me-2"></i>{{ pdf.name }}</span>
+            <div class="d-flex align-items-center">
+              <input class="form-check-input me-2 pdf-check" type="checkbox" value="{{ pdf.name }}">
+              <span><i class="bi bi-file-earmark-pdf text-danger me-2"></i>{{ pdf.name }}</span>
+            </div>
             <div>
-              <button class="btn btn-sm btn-outline-info btn-action extract-btn" data-file="{{ pdf.name }}"><i class="bi bi-eye"></i> Extract</button>
-              <button class="btn btn-sm btn-outline-warning btn-action summarize-btn" data-file="{{ pdf.name }}"><i class="bi bi-chat-dots"></i> Summarize</button>
+              <a href="{{ url_for('preview', filename=pdf.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right"></i></a>
+              <button class="btn btn-sm btn-outline-info btn-action extract-btn" data-file="{{ pdf.name }}"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-sm btn-outline-warning btn-action summarize-btn" data-file="{{ pdf.name }}"><i class="bi bi-chat-dots"></i></button>
               <button class="btn btn-sm btn-outline-danger btn-action" onclick="confirm('Delete {{ pdf.name }}?') && window.location.href='{{ url_for('delete', filename=pdf.name) }}'"><i class="bi bi-trash"></i></button>
             </div>
           </div>
@@ -276,6 +296,27 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// Select All
+function toggleSelectAll() {
+  const checked = document.getElementById('selectAll').checked;
+  document.querySelectorAll('.pdf-check').forEach(cb => cb.checked = checked);
+}
+
+// Dark Mode
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('dark', document.body.classList.contains('dark'));
+  updateDarkIcon();
+}
+function updateDarkIcon() {
+  const icon = document.getElementById('darkIcon');
+  icon.className = document.body.classList.contains('dark') ? 'bi bi-sun' : 'bi bi-moon';
+}
+if (localStorage.getItem('dark') === 'true') {
+  document.body.classList.add('dark');
+  updateDarkIcon();
 }
 
 // Auto-hide toasts

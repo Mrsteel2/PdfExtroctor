@@ -199,5 +199,36 @@ def delete(filename):
     return redirect(url_for("index"))
 
 
+@app.route("/preview/<filename>")
+def preview(filename):
+    path = UPLOAD_FOLDER / filename
+    if not path.exists():
+        flash(f"File not found: {filename}", "error")
+        return redirect(url_for("index"))
+    return send_file(path, mimetype="application/pdf")
+
+
+@app.route("/history")
+def history():
+    reports = sorted(OUTPUT_FOLDER.glob("report_*.md"), key=os.path.getmtime, reverse=True)
+    report_list = []
+    for r in reports:
+        report_list.append({
+            "name": r.name,
+            "size": round(r.stat().st_size / 1024, 1),
+            "created": datetime.fromtimestamp(r.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+        })
+    return render_template("history.html", reports=report_list)
+
+
+@app.route("/delete_report/<filename>")
+def delete_report(filename):
+    path = OUTPUT_FOLDER / filename
+    if path.exists():
+        path.unlink()
+        flash(f"Deleted {filename}", "success")
+    return redirect(url_for("history"))
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
