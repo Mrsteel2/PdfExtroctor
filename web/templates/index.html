@@ -12,8 +12,10 @@
     .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
     .card-header { background: transparent; border-bottom: 1px solid #eee; font-weight: 600; padding: 14px 20px; }
     .card-body { padding: 20px; }
-    .file-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; }
-    .file-item:hover { background: #e9ecef; transform: translateX(4px); }
+    .file-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; gap: 8px; }
+    .file-item:hover { background: #e9ecef; }
+    .file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-actions { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; }
     .result-box { background: #f8f9fa; border-radius: 8px; padding: 16px; max-height: 400px; overflow-y: auto; font-size: 14px; white-space: pre-wrap; font-family: 'Cascadia Code', monospace; }
     .empty-state { text-align: center; padding: 40px 20px; color: #adb5bd; }
     .empty-state i { font-size: 48px; margin-bottom: 12px; }
@@ -91,12 +93,10 @@
           </div>
           {% for pdf in pdfs %}
           <div class="file-item">
-            <div class="d-flex align-items-center">
-              <input class="form-check-input me-2 pdf-check" type="checkbox" value="{{ pdf.name }}">
-              <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
-              <span class="text-truncate" style="max-width:180px;">{{ pdf.name }}</span>
-            </div>
-            <div class="d-flex gap-1">
+            <input class="form-check-input me-2 pdf-check" type="checkbox" value="{{ pdf.name }}">
+            <i class="bi bi-file-earmark-pdf text-danger me-2 flex-shrink-0"></i>
+            <span class="file-name">{{ pdf.name }}</span>
+            <div class="file-actions">
               <a href="{{ url_for('preview', filename=pdf.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-tooltip="Preview PDF"><i class="bi bi-box-arrow-up-right"></i> View</a>
               <button class="btn btn-sm btn-outline-info extract-btn" data-file="{{ pdf.name }}" data-tooltip="Extract text from PDF"><i class="bi bi-eye"></i> Extract</button>
               <button class="btn btn-sm btn-outline-warning summarize-btn" data-file="{{ pdf.name }}" data-tooltip="AI summarize PDF"><i class="bi bi-chat-dots"></i> Summarize</button>
