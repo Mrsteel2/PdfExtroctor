@@ -84,32 +84,49 @@
     <!-- File List -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-files me-2"></i>PDF Files</span>
-        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal" data-tooltip="Upload PDF files"><i class="bi bi-cloud-arrow-up"></i> Upload</button>
+        <span><i class="bi bi-files me-2"></i>Files</span>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal" data-tooltip="Upload files"><i class="bi bi-cloud-arrow-up"></i> Upload</button>
       </div>
       <div class="card-body">
-        {% if pdfs %}
+        {% if files %}
           <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
             <label class="form-check-label small fw-semibold" for="selectAll">Select All</label>
           </div>
-          {% for pdf in pdfs %}
+          {% for f in files %}
+          {% set ext = f.suffix.lower() %}
           <div class="file-item">
-            <input class="form-check-input me-2 pdf-check" type="checkbox" value="{{ pdf.name }}">
-            <i class="bi bi-file-earmark-pdf text-danger me-2 flex-shrink-0"></i>
-            <span class="file-name">{{ pdf.name }}</span>
+            <input class="form-check-input me-2 file-check" type="checkbox" value="{{ f.name }}">
+            {% if ext == '.pdf' %}
+              <i class="bi bi-file-earmark-pdf text-danger me-2 flex-shrink-0"></i>
+            {% elif ext in ['.docx', '.doc'] %}
+              <i class="bi bi-file-earmark-word text-primary me-2 flex-shrink-0"></i>
+            {% elif ext in ['.pptx', '.ppt'] %}
+              <i class="bi bi-file-earmark-ppt text-warning me-2 flex-shrink-0"></i>
+            {% elif ext in ['.xlsx', '.xls'] %}
+              <i class="bi bi-file-earmark-excel text-success me-2 flex-shrink-0"></i>
+            {% elif ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff'] %}
+              <i class="bi bi-file-earmark-image text-info me-2 flex-shrink-0"></i>
+            {% elif ext in ['.html', '.htm'] %}
+              <i class="bi bi-file-earmark-code text-secondary me-2 flex-shrink-0"></i>
+            {% else %}
+              <i class="bi bi-file-earmark text-secondary me-2 flex-shrink-0"></i>
+            {% endif %}
+            <span class="file-name">{{ f.name }}</span>
             <div class="file-actions">
-              <a href="{{ url_for('preview', filename=pdf.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-tooltip="Preview PDF"><i class="bi bi-box-arrow-up-right"></i> View</a>
-              <button class="btn btn-sm btn-outline-info extract-btn" data-file="{{ pdf.name }}" data-tooltip="Extract text from PDF"><i class="bi bi-eye"></i> Extract</button>
-              <button class="btn btn-sm btn-outline-warning summarize-btn" data-file="{{ pdf.name }}" data-tooltip="AI summarize PDF"><i class="bi bi-chat-dots"></i> Summarize</button>
-              <button class="btn btn-sm btn-outline-danger" data-tooltip="Delete PDF" onclick="confirm('Delete {{ pdf.name }}?') && window.location.href='{{ url_for('delete', filename=pdf.name) }}'"><i class="bi bi-trash"></i></button>
+              {% if ext in ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.bmp'] %}
+              <a href="{{ url_for('preview', filename=f.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-tooltip="Preview file"><i class="bi bi-box-arrow-up-right"></i> View</a>
+              {% endif %}
+              <button class="btn btn-sm btn-outline-info extract-btn" data-file="{{ f.name }}" data-tooltip="Extract text"><i class="bi bi-eye"></i> Extract</button>
+              <button class="btn btn-sm btn-outline-warning summarize-btn" data-file="{{ f.name }}" data-tooltip="AI summarize"><i class="bi bi-chat-dots"></i> Summarize</button>
+              <button class="btn btn-sm btn-outline-danger" data-tooltip="Delete file" onclick="confirm('Delete {{ f.name }}?') && window.location.href='{{ url_for('delete', filename=f.name) }}'"><i class="bi bi-trash"></i></button>
             </div>
           </div>
           {% endfor %}
         {% else %}
           <div class="empty-state">
-            <i class="bi bi-file-earmark-pdf"></i>
-            <p>No PDFs yet.<br>Click <strong>Upload</strong> to add files.</p>
+            <i class="bi bi-file-earmark"></i>
+            <p>No files yet.<br>Click <strong>Upload</strong> to add files.</p>
           </div>
         {% endif %}
       </div>
@@ -120,8 +137,8 @@
       <div class="card-header"><i class="bi bi-search me-2"></i>Search</div>
       <div class="card-body">
         <select class="form-select form-select-sm mb-2" id="searchFile">
-          {% for pdf in pdfs %}
-          <option value="{{ pdf.name }}">{{ pdf.name }}</option>
+          {% for f in files %}
+          <option value="{{ f.name }}">{{ f.name }}</option>
           {% endfor %}
         </select>
         <div class="input-group">
@@ -160,8 +177,8 @@
           <div class="mb-3">
             <label class="form-label fw-semibold"><span class="step-label">1</span> Select PDFs</label>
             <select name="files" class="form-select" multiple size="3">
-              {% for pdf in pdfs %}
-              <option value="{{ pdf.name }}">{{ pdf.name }}</option>
+              {% for f in files %}
+              <option value="{{ f.name }}">{{ f.name }}</option>
               {% endfor %}
             </select>
             <small class="text-muted">Hold Ctrl to select multiple</small>
@@ -192,7 +209,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <input type="file" name="files" class="form-control" accept=".pdf" multiple required>
+          <input type="file" name="files" class="form-control" accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.html,.htm,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.txt,.csv,.json,.xml" multiple required>
+          <small class="text-muted">PDF, Word, PowerPoint, Excel, Images, HTML, Text</small>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -305,7 +323,7 @@ function escapeHtml(str) {
 // Select All
 function toggleSelectAll() {
   const checked = document.getElementById('selectAll').checked;
-  document.querySelectorAll('.pdf-check').forEach(cb => cb.checked = checked);
+  document.querySelectorAll('.file-check').forEach(cb => cb.checked = checked);
 }
 
 // Dark Mode

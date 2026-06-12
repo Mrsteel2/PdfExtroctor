@@ -25,13 +25,23 @@ UPLOAD_FOLDER.mkdir(exist_ok=True)
 OUTPUT_FOLDER = BASE_DIR / "output"
 OUTPUT_FOLDER.mkdir(exist_ok=True)
 
+SUPPORTED_EXTENSIONS = {
+    ".pdf", ".docx", ".doc", ".pptx", ".ppt",
+    ".xlsx", ".xls", ".html", ".htm",
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff",
+    ".txt", ".csv", ".json", ".xml",
+}
+
 extractor = PDFExtractor()
 
 
 @app.route("/")
 def index():
-    pdfs = sorted(UPLOAD_FOLDER.glob("*.pdf"), key=os.path.getmtime, reverse=True)
-    return render_template("index.html", pdfs=pdfs)
+    files = sorted(
+        [f for f in UPLOAD_FOLDER.iterdir() if f.suffix.lower() in SUPPORTED_EXTENSIONS],
+        key=os.path.getmtime, reverse=True,
+    )
+    return render_template("index.html", files=files)
 
 
 @app.route("/upload", methods=["POST"])
@@ -41,9 +51,12 @@ def upload():
         flash("No files selected", "error")
         return redirect(url_for("index"))
     for f in files:
-        if f.filename.lower().endswith(".pdf"):
+        ext = Path(f.filename).suffix.lower()
+        if ext in SUPPORTED_EXTENSIONS:
             f.save(str(UPLOAD_FOLDER / f.filename))
             flash(f"Uploaded {f.filename}", "success")
+        else:
+            flash(f"Skipped {f.filename} (unsupported format)", "error")
     return redirect(url_for("index"))
 
 
