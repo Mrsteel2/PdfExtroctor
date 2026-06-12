@@ -42,20 +42,7 @@
 
 <div class="container">
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<div class="toast-container">
-  {% for category, msg in messages %}
-  <div class="toast show align-items-center text-bg-{{ 'success' if category == 'success' else 'danger' }} border-0 mb-2">
-    <div class="d-flex">
-      <div class="toast-body">{{ msg }}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
+<!-- flash messages hidden -->
 
 <div class="row">
   <!-- Left: File list -->
@@ -69,14 +56,10 @@
         {% if pdfs %}
           {% for pdf in pdfs %}
           <div class="file-item">
+            <span><i class="bi bi-file-earmark-pdf text-danger me-2"></i>{{ pdf.name }}</span>
             <div>
-              <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
-              <strong>{{ pdf.name }}</strong><br>
-              <small class="text-muted">{{ (pdf.stat().st_size / 1024)|round(1) }} KB</small>
-            </div>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-info btn-action extract-btn" data-file="{{ pdf.name }}"><i class="bi bi-eye"></i></button>
-              <button class="btn btn-sm btn-outline-warning btn-action summarize-btn" data-file="{{ pdf.name }}"><i class="bi bi-chat-dots"></i></button>
+              <button class="btn btn-sm btn-outline-info btn-action extract-btn" data-file="{{ pdf.name }}"><i class="bi bi-eye"></i> Extract</button>
+              <button class="btn btn-sm btn-outline-warning btn-action summarize-btn" data-file="{{ pdf.name }}"><i class="bi bi-chat-dots"></i> Summarize</button>
               <button class="btn btn-sm btn-outline-danger btn-action" onclick="confirm('Delete {{ pdf.name }}?') && window.location.href='{{ url_for('delete', filename=pdf.name) }}'"><i class="bi bi-trash"></i></button>
             </div>
           </div>
@@ -130,34 +113,26 @@
     <div class="card">
       <div class="card-header"><i class="bi bi-envelope me-2"></i>Report & Email</div>
       <div class="card-body">
-        <form action="{{ url_for('report') }}" method="POST" class="row g-2 align-items-end">
-          <div class="col-md-5">
-            <label class="form-label small">Select PDFs for report</label>
-            <select name="files" class="form-select form-select-sm" multiple size="3">
+        <form action="{{ url_for('generate_and_send') }}" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">1. Select PDFs</label>
+            <select name="files" class="form-select" multiple size="3">
               {% for pdf in pdfs %}
               <option value="{{ pdf.name }}">{{ pdf.name }}</option>
               {% endfor %}
             </select>
+            <small class="text-muted">Hold Ctrl to select multiple files</small>
           </div>
-          <div class="col-md-2">
-            <button type="submit" class="btn btn-sm btn-success w-100"><i class="bi bi-file-text"></i> Generate</button>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">2. Recipient Email</label>
+            <input type="email" name="to" class="form-control" placeholder="recipient@example.com" required>
           </div>
-          <div class="col-md-5">
-            <label class="form-label small">Email report</label>
-            <div class="input-group input-group-sm">
-              <input type="email" class="form-control" form="emailForm" name="to" placeholder="recipient@example.com">
-              <button type="submit" form="emailForm" class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Send</button>
-            </div>
-          </div>
-        </form>
-        <form id="emailForm" action="{{ url_for('send') }}" method="POST" class="row g-2 mt-1">
-          <div class="col-md-6">
-            <input type="text" class="form-control form-control-sm" name="subject" placeholder="Subject" value="PDF Report">
-          </div>
-          <div class="col-md-6">
-            <input type="text" class="form-control form-control-sm" name="attachment" placeholder="Attachment path (optional)">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">3. Subject</label>
+            <input type="text" name="subject" class="form-control" value="PDF Report">
           </div>
           <input type="hidden" name="body" value="Please find the attached PDF report.">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-send me-2"></i>Generate Report & Send Email</button>
         </form>
       </div>
     </div>

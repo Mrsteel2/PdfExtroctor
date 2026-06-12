@@ -138,6 +138,35 @@ def send():
     return redirect(url_for("index"))
 
 
+@app.route("/generate_and_send", methods=["POST"])
+def generate_and_send():
+    filenames = request.form.getlist("files")
+    to = request.form.get("to", "")
+    subject = request.form.get("subject", "PDF Report")
+    body = request.form.get("body", "Please find the attached PDF report.")
+    if not filenames:
+        flash("No files selected", "error")
+        return redirect(url_for("index"))
+    if not to:
+        flash("No email address provided", "error")
+        return redirect(url_for("index"))
+    paths = [str(UPLOAD_FOLDER / f) for f in filenames]
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out = str(OUTPUT_FOLDER / f"report_{ts}.md")
+    try:
+        report_result = generate_report(file_paths=paths, output_path=out)
+        email_result = send_report(
+            subject=subject,
+            body=body,
+            attachment_path=out,
+            to=to,
+        )
+        flash(f"Report generated and email sent to {email_result['to']}", "success")
+    except Exception as e:
+        flash(f"Failed: {e}", "error")
+    return redirect(url_for("index"))
+
+
 @app.route("/download/<path:filename>")
 def download(filename):
     return send_file(OUTPUT_FOLDER / filename, as_attachment=True)
