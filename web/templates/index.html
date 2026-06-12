@@ -115,11 +115,11 @@
             <span class="file-name">{{ f.name }}</span>
             <div class="file-actions">
               {% if ext in ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.bmp'] %}
-              <a href="{{ url_for('preview', filename=f.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-tooltip="Preview file"><i class="bi bi-box-arrow-up-right"></i> View</a>
+              <a href="/preview/{{ f.name }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-tooltip="Preview file"><i class="bi bi-box-arrow-up-right"></i> View</a>
               {% endif %}
               <button class="btn btn-sm btn-outline-info extract-btn" data-file="{{ f.name }}" data-tooltip="Extract text"><i class="bi bi-eye"></i> Extract</button>
               <button class="btn btn-sm btn-outline-warning summarize-btn" data-file="{{ f.name }}" data-tooltip="AI summarize"><i class="bi bi-chat-dots"></i> Summarize</button>
-              <button class="btn btn-sm btn-outline-danger" data-tooltip="Delete file" onclick="confirm('Delete {{ f.name }}?') && window.location.href='{{ url_for('delete', filename=f.name) }}'"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-sm btn-outline-danger" data-tooltip="Delete file" onclick="if(confirm('Delete {{ f.name }}?'))window.location.href='/delete/{{ f.name }}'"><i class="bi bi-trash"></i></button>
             </div>
           </div>
           {% endfor %}

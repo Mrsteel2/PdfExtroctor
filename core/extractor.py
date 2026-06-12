@@ -6,6 +6,13 @@ from core.models import ExtractionResult
 
 logger = logging.getLogger(__name__)
 
+SUPPORTED_EXTENSIONS = {
+    ".pdf", ".docx", ".doc", ".pptx", ".ppt",
+    ".xlsx", ".xls", ".html", ".htm",
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff",
+    ".txt", ".csv", ".json", ".xml",
+}
+
 
 class PDFExtractor:
     def __init__(self):
@@ -21,24 +28,25 @@ class PDFExtractor:
     def extract(self, file_path: str | Path) -> ExtractionResult:
         path = Path(file_path).resolve()
         if not path.exists():
-            raise FileNotFoundError(f"PDF not found: {path}")
-        if path.suffix.lower() != ".pdf":
-            raise ValueError(f"Not a PDF file: {path.name}")
+            raise FileNotFoundError(f"File not found: {path}")
+        if path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            raise ValueError(f"Unsupported file type: {path.name}")
 
         logger.info("Extracting %s", path.name)
         result = self.converter.convert(str(path))
 
         metadata = {}
-        try:
-            import PyPDF2
-            reader = PyPDF2.PdfReader(str(path))
-            metadata["page_count"] = len(reader.pages)
-            if reader.metadata:
-                for k, v in reader.metadata.items():
-                    key = k.removeprefix("/")
-                    metadata[key] = str(v)
-        except ImportError:
-            pass
+        if path.suffix.lower() == ".pdf":
+            try:
+                import PyPDF2
+                reader = PyPDF2.PdfReader(str(path))
+                metadata["page_count"] = len(reader.pages)
+                if reader.metadata:
+                    for k, v in reader.metadata.items():
+                        key = k.removeprefix("/")
+                        metadata[key] = str(v)
+            except ImportError:
+                pass
 
         return ExtractionResult(
             source_path=str(path),
