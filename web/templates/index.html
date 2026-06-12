@@ -7,26 +7,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
-    body { background: #f5f7fa; }
+    body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
     .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
     .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
-    .card-header { background: transparent; border-bottom: 1px solid #eee; font-weight: 600; padding: 16px 20px; }
+    .card-header { background: transparent; border-bottom: 1px solid #eee; font-weight: 600; padding: 14px 20px; }
     .card-body { padding: 20px; }
-    .btn-action { border-radius: 8px; padding: 6px 14px; font-size: 13px; }
-    .result-box { background: #f8f9fa; border-radius: 8px; padding: 16px; max-height: 400px; overflow-y: auto; font-size: 14px; white-space: pre-wrap; font-family: 'SF Mono', 'Cascadia Code', monospace; }
-    .file-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; }
-    .file-item:hover { background: #e9ecef; }
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-    .loading { display: none; }
-    .loading.active { display: inline-block; }
-    .badge-pdf { background: #e74c3c; color: #fff; font-size: 11px; }
-    .tab-pane { padding-top: 16px; }
-    .nav-tabs .nav-link { color: #495057; font-weight: 500; }
-    .nav-tabs .nav-link.active { color: #1a1a2e; font-weight: 600; }
-    .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; margin-bottom: 12px; }
+    .file-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; }
+    .file-item:hover { background: #e9ecef; transform: translateX(4px); }
+    .result-box { background: #f8f9fa; border-radius: 8px; padding: 16px; max-height: 400px; overflow-y: auto; font-size: 14px; white-space: pre-wrap; font-family: 'Cascadia Code', monospace; }
     .empty-state { text-align: center; padding: 40px 20px; color: #adb5bd; }
     .empty-state i { font-size: 48px; margin-bottom: 12px; }
-    pre { margin-bottom: 0; }
+    .btn-labeled { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; border-radius: 8px; }
+    .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; margin-bottom: 12px; }
+    .step-label { background: #1a1a2e; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; margin-right: 8px; }
+    /* Dark Mode */
     body.dark { background: #1a1a2e; color: #e0e0e0; }
     body.dark .card { background: #16213e; color: #e0e0e0; }
     body.dark .card-header { border-color: #2a2a4a; color: #e0e0e0; }
@@ -37,6 +31,10 @@
     body.dark .result-box { background: #0f0f23; color: #e0e0e0; }
     body.dark .form-check-label { color: #e0e0e0; }
     body.dark .navbar { background: #0f0f23 !important; }
+    body.dark .step-label { background: #0f3460; }
+    /* Tooltip */
+    [data-tooltip] { position: relative; cursor: pointer; }
+    [data-tooltip]:hover::after { content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap; z-index: 99; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -45,9 +43,9 @@
   <div class="container d-flex justify-content-between align-items-center">
     <span class="navbar-brand mb-0 h1"><i class="bi bi-file-earmark-pdf me-2"></i>PDF Extractor</span>
     <div>
-      <a href="{{ url_for('history') }}" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-clock-history"></i> History</a>
-      <a href="{{ url_for('settings') }}" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-gear"></i> Settings</a>
-      <button class="btn btn-outline-light btn-sm" onclick="toggleDark()"><i class="bi bi-moon" id="darkIcon"></i></button>
+      <a href="{{ url_for('history') }}" class="btn btn-outline-light btn-sm me-2" data-tooltip="View past reports"><i class="bi bi-clock-history"></i> History</a>
+      <a href="{{ url_for('settings') }}" class="btn btn-outline-light btn-sm me-2" data-tooltip="App settings"><i class="bi bi-gear"></i> Settings</a>
+      <button class="btn btn-outline-light btn-sm" onclick="toggleDark()" data-tooltip="Toggle dark mode"><i class="bi bi-moon" id="darkIcon"></i></button>
     </div>
   </div>
 </nav>
@@ -77,12 +75,13 @@
 {% endwith %}
 
 <div class="row">
-  <!-- Left: File list -->
+  <!-- Left Column -->
   <div class="col-md-4">
+    <!-- File List -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-files me-2"></i>PDF Files</span>
-        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="bi bi-cloud-arrow-up"></i> Upload</button>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal" data-tooltip="Upload PDF files"><i class="bi bi-cloud-arrow-up"></i> Upload</button>
       </div>
       <div class="card-body">
         {% if pdfs %}
@@ -94,26 +93,27 @@
           <div class="file-item">
             <div class="d-flex align-items-center">
               <input class="form-check-input me-2 pdf-check" type="checkbox" value="{{ pdf.name }}">
-              <span><i class="bi bi-file-earmark-pdf text-danger me-2"></i>{{ pdf.name }}</span>
+              <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+              <span class="text-truncate" style="max-width:180px;">{{ pdf.name }}</span>
             </div>
-            <div>
-              <a href="{{ url_for('preview', filename=pdf.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right"></i></a>
-              <button class="btn btn-sm btn-outline-info btn-action extract-btn" data-file="{{ pdf.name }}"><i class="bi bi-eye"></i></button>
-              <button class="btn btn-sm btn-outline-warning btn-action summarize-btn" data-file="{{ pdf.name }}"><i class="bi bi-chat-dots"></i></button>
-              <button class="btn btn-sm btn-outline-danger btn-action" onclick="confirm('Delete {{ pdf.name }}?') && window.location.href='{{ url_for('delete', filename=pdf.name) }}'"><i class="bi bi-trash"></i></button>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('preview', filename=pdf.name) }}" target="_blank" class="btn btn-sm btn-outline-secondary" data-tooltip="Preview PDF"><i class="bi bi-box-arrow-up-right"></i> View</a>
+              <button class="btn btn-sm btn-outline-info extract-btn" data-file="{{ pdf.name }}" data-tooltip="Extract text from PDF"><i class="bi bi-eye"></i> Extract</button>
+              <button class="btn btn-sm btn-outline-warning summarize-btn" data-file="{{ pdf.name }}" data-tooltip="AI summarize PDF"><i class="bi bi-chat-dots"></i> Summarize</button>
+              <button class="btn btn-sm btn-outline-danger" data-tooltip="Delete PDF" onclick="confirm('Delete {{ pdf.name }}?') && window.location.href='{{ url_for('delete', filename=pdf.name) }}'"><i class="bi bi-trash"></i></button>
             </div>
           </div>
           {% endfor %}
         {% else %}
           <div class="empty-state">
             <i class="bi bi-file-earmark-pdf"></i>
-            <p>No PDFs yet. Upload one to get started.</p>
+            <p>No PDFs yet.<br>Click <strong>Upload</strong> to add files.</p>
           </div>
         {% endif %}
       </div>
     </div>
 
-    <!-- Quick search -->
+    <!-- Search -->
     <div class="card">
       <div class="card-header"><i class="bi bi-search me-2"></i>Search</div>
       <div class="card-body">
@@ -123,16 +123,17 @@
           {% endfor %}
         </select>
         <div class="input-group">
-          <input type="text" class="form-control form-control-sm" id="searchQuery" placeholder="Keyword...">
-          <button class="btn btn-sm btn-outline-primary" onclick="doSearch()"><i class="bi bi-search"></i></button>
+          <input type="text" class="form-control form-control-sm" id="searchQuery" placeholder="Type a keyword...">
+          <button class="btn btn-sm btn-primary" onclick="doSearch()" data-tooltip="Search in PDF"><i class="bi bi-search"></i> Search</button>
         </div>
         <div id="searchResults" class="mt-2 result-box" style="display:none; max-height:200px;"></div>
       </div>
     </div>
   </div>
 
-  <!-- Right: Results -->
+  <!-- Right Column -->
   <div class="col-md-8">
+    <!-- Output -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-terminal me-2"></i>Output</span>
@@ -140,11 +141,11 @@
       </div>
       <div class="card-body">
         <div id="outputArea" class="result-box" style="max-height:500px; min-height:200px;">
-          <span class="text-muted">Select a PDF and click extract (eye) or summarize (chat) to see results here.</span>
+          <span class="text-muted">Click <strong>Extract</strong> or <strong>Summarize</strong> on any PDF to see results here.</span>
         </div>
-        <div class="mt-3">
-          <button class="btn btn-sm btn-outline-secondary" onclick="copyOutput()"><i class="bi bi-clipboard"></i> Copy</button>
-          <button class="btn btn-sm btn-outline-secondary" onclick="clearOutput()"><i class="bi bi-x-circle"></i> Clear</button>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="copyOutput()" data-tooltip="Copy output"><i class="bi bi-clipboard"></i> Copy</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="clearOutput()" data-tooltip="Clear output"><i class="bi bi-x-circle"></i> Clear</button>
         </div>
       </div>
     </div>
@@ -155,24 +156,24 @@
       <div class="card-body">
         <form action="{{ url_for('generate_and_send') }}" method="POST">
           <div class="mb-3">
-            <label class="form-label fw-semibold">1. Select PDFs</label>
+            <label class="form-label fw-semibold"><span class="step-label">1</span> Select PDFs</label>
             <select name="files" class="form-select" multiple size="3">
               {% for pdf in pdfs %}
               <option value="{{ pdf.name }}">{{ pdf.name }}</option>
               {% endfor %}
             </select>
-            <small class="text-muted">Hold Ctrl to select multiple files</small>
+            <small class="text-muted">Hold Ctrl to select multiple</small>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">2. Recipient Email</label>
+            <label class="form-label fw-semibold"><span class="step-label">2</span> Recipient Email</label>
             <input type="email" name="to" class="form-control" placeholder="recipient@example.com" required>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">3. Subject</label>
+            <label class="form-label fw-semibold"><span class="step-label">3</span> Subject</label>
             <input type="text" name="subject" class="form-control" value="PDF Report">
           </div>
           <input type="hidden" name="body" value="Please find the attached PDF report.">
-          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-send me-2"></i>Generate Report & Send Email</button>
+          <button type="submit" class="btn btn-primary w-100 btn-lg" data-tooltip="Generate report and send via email"><i class="bi bi-send me-2"></i>Generate & Send</button>
         </form>
       </div>
     </div>
@@ -185,14 +186,15 @@
     <div class="modal-content">
       <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
         <div class="modal-header">
-          <h5 class="modal-title">Upload PDFs</h5>
+          <h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i>Upload PDFs</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <input type="file" name="files" class="form-control" accept=".pdf" multiple required>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up"></i> Upload</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-2"></i>Upload</button>
         </div>
       </form>
     </div>
